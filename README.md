@@ -2,4 +2,4 @@
 
 Sea animation created with OpenGL.
 
-Download the repo and run the Hav.exe file to start the animation.
+Download the repo and run Hav.exe located in the Debug-folder to start the animation.
