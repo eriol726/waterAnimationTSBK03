@@ -45,12 +45,12 @@ glm::mat4 PVcalc(GLuint location_cameraPosition, Camera *camera) {
 
 glm::mat4 CameraReflect(GLuint location_cameraPosition, Camera *camera) {
 
-	
+
 
 
 	glm::vec4 plane = glm::vec4(0.0f, 1.0f, 0.0f, 0.1f);
 
-	
+
 
 	float reflect[16] = {
 		1 - 2 * plane.x*plane.x, -2 * plane.x*plane.y, -2 * plane.x*plane.z, -2 * plane.x*plane.w,
@@ -71,7 +71,7 @@ glm::mat4 CameraReflect(GLuint location_cameraPosition, Camera *camera) {
 	glm::mat4 scale = glm::scale(glm::vec3(1.0f, -1.0f, 1.0f));
 
 	glm::mat4 ViewMatrix = camera->getViewMatrix();
-	glm::mat4 cameraFlip =  ViewMatrix*reflectMatrix;
+	glm::mat4 cameraFlip = ViewMatrix*reflectMatrix;
 
 	glm::mat4 ProjectionMatrix = camera->getProjectionMatrix();
 	glm::mat4 CameraReflect = ProjectionMatrix*cameraFlip;
@@ -123,7 +123,7 @@ void sphereMVP(GLuint location_reflectionMVP, GLuint location_reflectionM, glm::
 	glm::mat4 trans = glm::translate(glm::vec3(0.0f, 1.5f, 0.0f));
 	glm::mat4 rotate = glm::rotate(-90.0f, glm::vec3(1, 0, 0));
 	glm::mat4 ModelMatrix = trans*scale*rotate;
-	
+
 	glm::mat4 MVP = PV * ModelMatrix;
 
 	glUniformMatrix4fv(location_reflectionMVP, 1, GL_FALSE, &MVP[0][0]);
@@ -239,13 +239,14 @@ int main(int argc, char *argv[]) {
 	sphereTexture.createTexture("texture/earth.tga");
 
 	ship.readOBJ("meshes/ship.obj");
-	sphere.createSphere(1,25);
+	sphere.createSphere(1, 25);
 
 	seaBottomShape.createTriangle();
 	seaShape.createSea();
 
 	// ---------------------------------------------
 	// Render to Texture - specific code begins here
+	// For FBOs I used the tutorial in: http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/ 
 	// ---------------------------------------------
 
 	// The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer.
@@ -283,7 +284,7 @@ int main(int argc, char *argv[]) {
 	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
 	glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
 
-	// Always check that our framebuffer is ok
+								   // Always check that our framebuffer is ok
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		return false;
 
@@ -293,14 +294,14 @@ int main(int argc, char *argv[]) {
 	// Main loop
 	while (!glfwWindowShouldClose(window))
 	{
-
-		double plane[] = { 0.0f, 1.0f, 0.0f, 0.1f };
-		glClipPlane(GL_CLIP_PLANE0, plane);
+		// Did not work
+		//double plane[] = { 0.0f, 1.0f, 0.0f, 0.1f };
+		//glClipPlane(GL_CLIP_PLANE0, plane);
 		//glEnable(GL_CLIP_DISTANCE0);
 
 		glEnable(GL_DEPTH_TEST);
 		glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
-			
+
 		glUseProgram(terrainShader.programID);
 
 		Utilities::displayFPS(window);
@@ -315,14 +316,14 @@ int main(int argc, char *argv[]) {
 
 		float currentTime = (float)glfwGetTime();
 		/* ---- Rendering code should go here ---- */
-			
+
 		glm::mat4  PV = PVcalc(location_cameraPosition, camera);
 
 		seaBottomMVP(location_terrainMVP, PV, -2.0f);
 		bindTexture(GL_TEXTURE3, seaBottomTexture, location_terrainTexture, 3);
 		seaBottomShape.render();
 
-				
+
 		// ProjectionViewMatrix calculations
 		PV = CameraReflect(location_cameraPosition, camera);
 
@@ -331,7 +332,7 @@ int main(int argc, char *argv[]) {
 		bindTexture(GL_TEXTURE1, objectTexture, location_terrainTexture, 1);
 
 		//camera movement does not work!
-		float distance =  2 * (camera->getCameraPosition().y - 0.1f);// waters height
+		float distance = 2 * (camera->getCameraPosition().y - 0.1f);// waters height
 		camera->computeMatricesFromInputs(true, -distance);
 		ship.render();
 
@@ -352,9 +353,8 @@ int main(int argc, char *argv[]) {
 		bindTexture(GL_TEXTURE1, dudvTexture, location_dudvMap, 1);
 		bindTexture(GL_TEXTURE2, normalTexture, location_normalMap, 2);
 		bindTexture(GL_TEXTURE3, seaBottomTexture, location_seabottomTexture, 3);
-			
-			
-		
+
+
 		//Bind 0, which means render to back buffer, as a result, fb is unbound
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glActiveTexture(GL_TEXTURE0);
@@ -372,7 +372,7 @@ int main(int argc, char *argv[]) {
 
 		glUseProgram(terrainShader.programID);
 		PV = PVcalc(location_cameraPosition, camera);
-			
+
 		//render reality ship
 		shipMVP(location_terrainMVP, PV, currentTime);
 		bindTexture(GL_TEXTURE1, objectTexture, location_terrainTexture, 1);
@@ -382,7 +382,7 @@ int main(int argc, char *argv[]) {
 		sphereMVP(location_terrainMVP, location_terrainMVP, PV);
 		bindTexture(GL_TEXTURE2, sphereTexture, location_terrainTexture, 2);
 		sphere.render();
-			
+
 		//render seaBottom
 		seaBottomMVP(location_terrainMVP, PV, -2.0f);
 		bindTexture(GL_TEXTURE3, seaBottomTexture, location_terrainTexture, 3);
@@ -399,7 +399,7 @@ int main(int argc, char *argv[]) {
 			glUniform1f(location_waveTime, waveTime);
 
 		}
-		
+
 		// Swap buffers, i.e. display the image and prepare for next frame.
 		glfwSwapBuffers(window);
 
@@ -410,10 +410,9 @@ int main(int argc, char *argv[]) {
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE)) {
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
-
 	}
-	// Cleanup  shader and textures
 
+	// Cleanup  shader and textures
 	glDeleteProgram(waterShader.programID);
 	glDeleteProgram(terrainShader.programID);
 	glDeleteTextures(3, &location_seabottomTexture);
@@ -424,8 +423,6 @@ int main(int argc, char *argv[]) {
 	//Delete resources
 	glDeleteTextures(1, &renderedTexture);
 	glDeleteRenderbuffersEXT(1, &depthrenderbuffer);
-
-	
 	glDeleteFramebuffersEXT(1, &FramebufferName);
 
 	// Close the OpenGL window and terminate GLFW.

@@ -24,39 +24,40 @@ const float reflectivity = 0.5;
 
 void main()
 {
-	
 	//creating rippling effect with distortion coords
 	vec2 distortedTexCoords = texture(dudvMap, vec2(textureCoords.x + moveFactor*0.1, textureCoords.y)).rg*0.1;
 	distortedTexCoords = textureCoords + vec2(distortedTexCoords.x, distortedTexCoords.y + moveFactor*0.1);
-	vec2 totalDistortion = (texture(dudvMap, distortedTexCoords).rg * 2.0 - 1.0) * waveStrength ;
+	vec2 totalDistortion = (texture(dudvMap, distortedTexCoords).rg * 2.0 - 1.0) * waveStrength;
 
-	
 	//normal vector generation
 	vec4 normalMapColour = texture(normalMap, distortedTexCoords);
 	vec3 normal = vec3(normalMapColour.r * 2.0 - 1.0, normalMapColour.b * 2.0, normalMapColour.g * 2.0 - 1.0);
 	normal = normalize(normal);
 
-	
-	vec3 viewVector = normalize(toCameraVector);
-	float refractiveFactor = dot(viewVector, normal);
-	refractiveFactor = pow(refractiveFactor, 0.5);
 
-	vec3 lightColour = vec3(1.0, 1.0, 1.0);
+	// using this to decide if light shall appera 
+	vec3 viewVector = normalize(toCameraVector);
+
+	//float refractiveFactor = dot(viewVector, normal);
+	//refractiveFactor = pow(refractiveFactor, 0.5);
 
 	//Specular light calculation
+	vec3 lightColour = vec3(1.0, 1.0, 1.0);
 	vec3 reflectedLight = reflect(normalize(LightVector), normal);
-	float specular = max(dot(reflectedLight, viewVector), 0.0);		 	
+	float specular = max(dot(reflectedLight, viewVector), 0.0);
 	specular = pow(specular, shineDamper);
-	vec3 specularHighlights = lightColour * specular * reflectivity ; 
+	vec3 specularHighlights = lightColour * specular * reflectivity;
 
 	// converting reflection coordinates to Norma Device Space to UV-coordinates 
 	vec4 vClipReflection = o2v_projection_reflection * vec4(interpolatedVertexObject.xy, 0.0, 1.0);
 	vec2 vDeviceReflection = vClipReflection.st / vClipReflection.q;
-	vec2 vTextureReflection = vec2(0.5, 0.5) + 0.5 * vDeviceReflection ;
+	vec2 vTextureReflection = vec2(0.5, 0.5) + 0.5 * vDeviceReflection;
 	// adding distortion
-	vTextureReflection += totalDistortion ;
+	vTextureReflection += totalDistortion;
 
 	vTextureReflection = clamp(vTextureReflection, 0.001, 0.999);
+
+	//renderedTexture is everything we captures as reflektions
 	vec4 reflectionTextureColor = texture(renderedTexture, vTextureReflection);
 
 	// Framebuffer reflection can have alpha > 1
