@@ -23,7 +23,7 @@
 #All folders
 /Release/*
 /Hav/Release/*
-/Hav//Debug/*
+/Hav/Debug/*
 /Hav/x64/*
 /Hav/meshes/*
 /Hav/textures/*
